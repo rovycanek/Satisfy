@@ -1,0 +1,383 @@
+@inject Satisfy.Web.Data.DotaznikListService dotaznikListService
+@inject DotaznikCreateService dotaznikCreateService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime;
+
+@page "/questionare-list"
+@using Satisfy.Shared.Form
+@using Satisfy.Shared.Respondent
+@using Satisfy.Web.Data
+
+<style>
+    .myInput {
+        width: auto;
+        height: 50px;
+    }
+
+    .card {
+        /*width: 500px;
+       height: auto;
+        position: absolute;
+        left: 50%;
+        margin-left: -50px;*/
+        margin-left: 50px;
+        margin-right: 50px;
+        margin-top: 8%;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 15px;
+    }
+
+    .img2 {
+        width: 120px;
+        height: auto;
+        z-index: 3;
+    }
+
+    .inp {
+        -webkit-box-shadow: 12px 9px 5px 0px rgba(0,0,0,0.14);
+        -moz-box-shadow: 12px 9px 5px 0px rgba(0,0,0,0.14);
+        box-shadow: 12px 9px 5px 0px rgba(0,0,0,0.14);
+    }
+
+    .shading {
+        -webkit-box-shadow: 16px 21px 26px -8px rgba(36,36,36,0.52);
+        -moz-box-shadow: 16px 21px 26px -8px rgba(36,36,36,0.52);
+        box-shadow: 16px 21px 26px -8px rgba(36,36,36,0.52);
+    }
+
+    .btn {
+        width: 100px;
+    }
+
+
+    .separator {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: gray;
+    }
+
+        .separator::before, .separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid;
+            color: gray;
+        }
+
+        .separator::before {
+            margin-right: .25em;
+        }
+
+        .separator::after {
+            margin-left: .25em;
+        }
+
+    body {
+        /*background-image: url(images/backgr.jpg);*/
+        background-size: cover;
+        background-attachment: fixed;
+    }
+</style>
+<div>
+
+    <div class="card shading text-center">
+        <div class="card-header">
+            <div class="row">
+                <div class="col-sm-6 align-content-start">
+                    <h3 class="">List</h3>
+                </div>
+                <div class="col-sm-6 align-content-end">
+                    <img class="img2 " src="images/SATISFY-LOGO-01.png" />
+                </div>
+            </div>
+
+
+        </div>
+        <div class="card-body">
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Last change</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (DotaznikListResponse != null)
+                    {
+                        @for (var i = 0; i < DotaznikListResponse.Questionnair.Count(); i++)
+                        {
+
+                            var dotaznikNumber = DotaznikListResponse.Questionnair[i].QuestionnaireId;
+                            <tr>
+                                <td>@DotaznikListResponse.Questionnair[@i].Name</td>
+                                <td>@DotaznikListResponse.Questionnair[@i].StartDate</td>
+
+                                <td>
+                                    <button class="btn btn-success" value="@DotaznikListResponse.Questionnair[i].QuestionnaireId" @onclick="@(e => SendDotaznikID(e, dotaznikNumber))">Send</button>
+                                    <div class="dropdown dropleft float-right">
+                                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                                            Options
+                                        </button>
+
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item" value="@DotaznikListResponse.Questionnair[i].QuestionnaireId" @onclick="@(e => SendDotaznikID(e, dotaznikNumber))">View</a>
+
+                                            <a class="dropdown-item" data-toggle="modal" data-target="#myModalCopy" value="@DotaznikListResponse.Questionnair[i].QuestionnaireId" @onclick="@(e => LoadDotaznikID(e, dotaznikNumber))">Copy</a>
+
+
+                                            @if (DotaznikListResponse.Questionnair[i].IsPublished)
+                                            {
+                                                @*<a class=" dropdown-item" disabled>Edit</a>
+                                                <a class=" dropdown-item" disabled>Published</a>*@
+                                                <a class=" dropdown-item" data-toggle="modal" data-target="#myModalEvaluate" @onclick="@(e => LoadDotaznikID(e, dotaznikNumber))">Evaluate</a>
+                                            }
+                                            else
+                                            {
+                                                <a class=" dropdown-item" value="@DotaznikListResponse.Questionnair[i].QuestionnaireId" @onclick="@(e => EditDotaznik(e, dotaznikNumber))">Edit</a>
+                                                <a class=" dropdown-item" data-toggle="modal" data-target="#myModalPublish" value="@DotaznikListResponse.Questionnair[i].QuestionnaireId" @onclick="@(e => LoadDotaznikID(e, dotaznikNumber))">Publish</a>
+                                                @*<a class=" dropdown-item" disabled>Evaluate</a>*@
+                                            }
+
+                                            <a class=" dropdown-item" data-toggle="modal" data-target="#myModalDelete" @onclick="@(e => LoadDotaznikID(e, dotaznikNumber))">Delete</a>
+                                        </div>
+                                    </div>
+                                </td>
+                                <!--  <td><button class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDelete" style="width:85px; height:37px;">Delete</button></td> -->
+                            </tr>
+
+                        }
+                    }
+                </tbody>
+            </table>
+
+
+        </div>
+    </div>
+
+    <!-- The Modal -->
+    <div class="modal fade" id="myModalPublish">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Publish questionnaire?</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <p>If you do so you WILL NOT BE ABLE TO EDIT questionnaire no more!</p>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer" style="justify-content:center;">
+                    <button type="button" class="btn btn-outline-warning" @onclick="PublishDotaznik" data-dismiss="modal">Publish</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="myModalDelete">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Delete questionnaire?</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <p>If you do so this questionnaire WILL BE DELETED!</p>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer" style="justify-content:center;">
+                    <button type="button" class="btn btn-outline-danger" @onclick="DeleteDotaznik" data-dismiss="modal">Delete</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="myModalEvaluate">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Evaluate questionnaire?</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <p>If you do so this questionnaire WILL BE CLOSED AND EVALUATED!</p>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer" style="justify-content:center;">
+                    <button type="button" class="btn btn-outline-dark" @onclick="EvaluateDotaznik" data-dismiss="modal">Evaluate</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="myModalCopy">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Copy questionnaire?</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <p>If you do so NEW COPY OF THIS QUESTIONNAIRE WILL BE CREATED!</p>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer" style="justify-content:center;">
+                    <button type="button" class="btn btn-light" @onclick="CopyDotaznik" data-dismiss="modal">Create copy</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+@code{
+    int UserID = -1;
+
+    QuestionnaireListResponse DotaznikListResponse = new QuestionnaireListResponse();
+
+    // Questionnairee questionnaire = new Questionnairee();
+
+    int dotaznikID;
+
+    async Task LoadQuestionnaireList(int dotaznikNumber)
+    {
+        var response = await dotaznikListService.LoadDotazniky(dotaznikNumber);
+        DotaznikListResponse = response;
+    }
+
+
+    async Task CopyDotaznik()
+    {
+        var response = await dotaznikListService.CopyDotazniky(dotaznikID);
+        try
+        {
+            await LoadQuestionnaireList(UserID);
+        }
+        catch { }
+    }
+
+    async Task CSVDownload()
+    {
+
+            var response =await dotaznikListService.ZiskejCsv(dotaznikID);
+
+            await JSRuntime.InvokeVoidAsync("DownloadCSV", response.Responses.CsvList);
+
+            // dál se musí zavolat JS 
+            //const rows = [
+            //["name1", "city1", "some other info"],
+            //["name2", "city2", "more info"]
+            //    ];
+
+            //let csvContent = "data:text/csv;charset=utf-8," 
+            //                 + rows.map(e => e.join(",")).join("\n");
+            //var encodedUri = encodeURI(csvContent);
+            //window.open(encodedUri);
+            //který by to měl stáhnout jako CSV
+            //toto je příklad co sem našel, proměná rows, je u mě response.Responses.CsvList
+
+
+    }
+
+
+    public void LoadDotaznikID(MouseEventArgs e, int dotaznikNumber)
+    {
+        dotaznikID = dotaznikNumber;
+    }
+
+    public async void SendDotaznikID(MouseEventArgs e, int dotaznikNumber)
+    {
+        dotaznikID = dotaznikNumber;
+        // SEM PRIDAT ULOZENI DO SESSION NEBO NĚKDE, ABYCHOM VĚDĚLI, JAKÉ dotaznikID PŘIŘADIT KE KONTAKTU PŘI ODESÍLÁNÍ
+
+        await JSRuntime.InvokeVoidAsync("DotaznikSet", dotaznikID);
+
+        NavigationManager.NavigateTo("questionare");
+    }
+
+    public async void EditDotaznik(MouseEventArgs e, int dotaznikNumber)
+    {
+        dotaznikID = dotaznikNumber;
+        // SEM PRIDAT ULOZENI DO SESSION NEBO NĚKDE, ABYCHOM VĚDĚLI, JAKÝ DOTAZNÍK NAČÍST
+        await JSRuntime.InvokeVoidAsync("DotaznikSet", dotaznikID);
+
+        NavigationManager.NavigateTo("questionareEdit");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // UserID = JSRuntime.InvokeAsync<Int32>("LoginGet").Result;
+        try
+        {
+            UserID = await JSRuntime.InvokeAsync<Int32>("LoginGet");
+
+        }
+        catch { }
+        try
+        {
+            await LoadQuestionnaireList(UserID);
+        }
+        catch { }
+
+        int DotaznikID = -1;
+        //SMAZZAT dotaznikID ZE PAMĚTI -> BUDEM VYBÍRAT JINÝ DOTAZNÍK
+        await JSRuntime.InvokeVoidAsync("DotaznikSet", DotaznikID);
+    }
+
+    //MouseEventArgs e, int dotaznikNumber
+    async public void PublishDotaznik()
+    {
+        await dotaznikListService.PublishDotazniky(dotaznikID);
+        await LoadQuestionnaireList(UserID);
+
+    }
+
+    async public void DeleteDotaznik()
+    {
+
+        await dotaznikListService.DeleteDotazniky(dotaznikID);
+        await LoadQuestionnaireList(UserID);
+    }
+
+    async public void EvaluateDotaznik()
+    {
+
+         await CSVDownload();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JSRuntime.InvokeVoidAsync("LogedInCheck");
+
+    }
+}
+

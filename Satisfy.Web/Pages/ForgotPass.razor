@@ -1,0 +1,101 @@
+﻿@page "/forpass"
+
+<style>
+    .myInput {
+        width: auto;
+        height: 50px;
+    }
+
+    .card {
+        width: 400px;
+        height: auto;
+        position: absolute;
+        left: 50%;
+        margin-left: -50px;
+        top: 10%;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 15px;
+    }
+    
+    .img {
+        width: 120px;
+        height: auto;
+        position: absolute;
+        left: 50%;
+        margin-left: 220px;
+        margin-top: -28px;
+        top: 10%;
+        z-index: 3;
+    }
+
+    .inp {
+        -webkit-box-shadow: 12px 9px 5px 0px rgba(0,0,0,0.14);
+        -moz-box-shadow: 12px 9px 5px 0px rgba(0,0,0,0.14);
+        box-shadow: 12px 9px 5px 0px rgba(0,0,0,0.14);
+    }
+
+    .shading {
+        -webkit-box-shadow: 16px 21px 26px -8px rgba(36,36,36,0.52);
+        -moz-box-shadow: 16px 21px 26px -8px rgba(36,36,36,0.52);
+        box-shadow: 16px 21px 26px -8px rgba(36,36,36,0.52);
+    }
+
+    
+
+
+    .separator {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: gray;
+    }
+
+        .separator::before, .separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid;
+            color: gray;
+        }
+
+        .separator::before {
+            margin-right: .25em;
+        }
+
+        .separator::after {
+            margin-left: .25em;
+        }
+
+    body {
+        /*background-image: url(images/backgr.jpg);*/
+        background-size: cover;
+        background-attachment: fixed;
+    }
+
+</style>
+<div>
+    <img class="img" src="images/SATISFY-LOGO-01.png" />
+    <div class="card shading">
+        <div class="card-header"><h3>PASSWORD</h3></div>
+        <div class="card-body">
+            <br />
+            <br />
+            <form>
+                <div class="input-group mb-3 inp ">
+                    <input type="text" class="form-control text-center myInput" placeholder="E-mail">
+                </div>
+
+                @*<div class="input-group mb-3 inp">
+                    <input type="text" class="form-control text-center myInput" placeholder="Password">
+                </div>*@
+            </form>
+            <br />
+            <button type="button" class="btn btn-block btn-outline-warning ">Send</button>
+            <br />
+            <div class="separator">Others</div>
+            <br />
+            <div class="text-center">
+                <h6>Don't have an account? <a href="signup">Sing Up</a></h6>
+            </div>
+        </div>
+    </div>
+</div>

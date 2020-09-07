@@ -1,0 +1,128 @@
+﻿@page "/signup"
+@inject RegistrationService registrationService
+
+
+<style>
+    .myInput {
+        width: auto;
+        height: 50px;
+    }
+
+    .card {
+        width: 400px;
+        height: auto;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 15px;
+    }
+
+
+    .img {
+        width: 120px;
+        height: auto;
+        position: absolute;
+        left: 50%;
+        margin-left: 220px;
+        margin-top: -28px;
+        top: 10%;
+        z-index: 3;
+    }
+
+    .inp {
+        -webkit-box-shadow: 12px 9px 5px 0px rgba(0,0,0,0.14);
+        -moz-box-shadow: 12px 9px 5px 0px rgba(0,0,0,0.14);
+        box-shadow: 12px 9px 5px 0px rgba(0,0,0,0.14);
+    }
+
+    .shading {
+        -webkit-box-shadow: 16px 21px 26px -8px rgba(36,36,36,0.52);
+        -moz-box-shadow: 16px 21px 26px -8px rgba(36,36,36,0.52);
+        box-shadow: 16px 21px 26px -8px rgba(36,36,36,0.52);
+    }
+
+
+    .separator {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: gray;
+    }
+
+        .separator::before, .separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid;
+            color: gray;
+        }
+
+        .separator::before {
+            margin-right: .25em;
+        }
+
+        .separator::after {
+            margin-left: .25em;
+        }
+
+    body {
+        /*background-image: url(images/backgr.jpg);*/
+        background-size: cover;
+        background-attachment: fixed;
+    }
+</style>
+<div>
+    <img class="img" src="images/SATISFY-LOGO-01.png" />
+    <div class="myCard card shading">
+        <div class="card-header"><h3>REGISTRATION</h3></div>
+        <div class="card-body">
+            <form>
+                <div class="input-group mb-3 inp ">
+                    <input type="text" class="form-control text-center myInput" placeholder="Name" @bind="Name">
+                </div>
+
+                <div class="input-group mb-3 inp">
+                    <input type="email" class="form-control text-center myInput" placeholder="Email" @bind="Email">
+                </div>
+
+                <div class="input-group mb-3 inp">
+                    <input type="text" class="form-control text-center myInput" placeholder="Username" @bind="Username">
+                </div>
+
+                <div class="input-group mb-3 inp">
+                    <input type="password" class="form-control text-center myInput" placeholder="Password" @bind="Password">
+                </div>
+
+                <div class="input-group mb-3 inp">
+                    <input type="password" class="form-control text-center myInput" placeholder="Password repeated" @bind="RepeatPassword">
+                </div>
+            </form>
+            <br />
+            <button type="button" class="btn btn-primary btn-block" @onclick="Regist">Sign up</button>
+            <div class="text-center">
+                <h6>@Response</h6>
+            </div>
+            <br />
+            <div class="separator">Others</div>
+            <br />
+            <div class="text-center">
+                <h6>Have an account? <a href="login">Login</a></h6>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code{
+    string Username;
+    string Password;
+    string RepeatPassword;
+    string Email;
+    string Name;
+
+    string Response;
+
+    async Task Regist()
+    {
+
+        var response = await registrationService.Registration(Username, Name, Email, Password, RepeatPassword);
+        Response = response.Response;
+
+    }
+}

@@ -1,0 +1,92 @@
+# ASP.NET Core (.NET Framework)
+# Build and test ASP.NET Core projects targeting the full .NET Framework.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+trigger:
+- master
+
+pool:
+   vmImage: 'windows-latest'
+
+variables:
+   solution: '**/*.sln'
+   buildPlatform: 'AnyCPU'
+   BuildConfiguration: 'Release'
+
+steps:
+- task: NuGetToolInstaller@1
+
+- task: NuGetCommand@2
+  inputs:
+     restoreSolution: '$(solution)'
+
+- task: UseDotNet@2
+  inputs: 
+     packageType: 'sdk' 
+     version: '3.1.x'
+  displayName: Specify dotnet core 3.1.x sdk
+
+- task: DotNetCoreCLI@2
+  displayName: dotnet build solution
+  inputs:
+    command: build
+    arguments: 'Satisfy.Api/Satisfy.Api.csproj --configuration $(buildConfiguration --output $(Build.BinariesDirectory)'
+
+# - Prepare Migrations SQL script
+- task: efcore-migration-script-generator-task@0
+  inputs:
+     projectpath: '$(Build.SourcesDirectory)/Satisfy.Api/Satisfy.Api.csproj'
+     databasecontexts: 'DbModel'
+     startupprojectpath: '$(Build.SourcesDirectory)/Satisfy.Api/Satisfy.Api.csproj'
+     targetfolder: '$(build.artifactstagingdirectory)/Migrations'
+     installdependencies: true
+
+# - Publish Migrations
+- task: PublishBuildArtifacts@1
+  displayName: publish migrations
+  inputs:
+    artifactName: 'Migrations'
+    PathtoPublish: '$(build.artifactstagingdirectory)/Migrations'
+
+
+# - Publish API
+- task: DotNetCoreCLI@2
+  displayName: dotnet publish API
+  inputs:
+    command: publish 
+    publishWebProjects: false
+    arguments: 'Satisfy.Api/ --configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: False
+
+- task: PublishBuildArtifacts@1
+  displayName: publish  API
+  inputs:
+    artifactName: 'API'
+    PathtoPublish: '$(build.artifactstagingdirectory)'
+
+- task: DeleteFiles@1
+  displayName: 'Delete build.artifactstagingdirectory'
+  inputs:
+     SourceFolder: '$(build.artifactstagingdirectory)'
+     Contents: '**'
+
+- task: MSBuild@1
+  inputs:
+    solution: 'Satisfy.Web/Satisfy.Web.csproj'
+    msbuildArchitecture: 'x64'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: 'Satisfy.Web/bin/$(buildConfiguration)'
+    Contents: '**'
+    TargetFolder: '$(build.artifactstagingdirectory)'
+    CleanTargetFolder: true
+
+- task: PublishBuildArtifacts@1
+  displayName: publish Satisfy
+  inputs:
+    artifactName: 'FE'
+    PathtoPublish: '$(build.artifactstagingdirectory)'

@@ -1,0 +1,19 @@
+﻿@inherits LayoutComponentBase
+@inject  NavigationManager NavigationManager;
+
+@{ 
+    var url = NavigationManager.Uri;
+}
+@if (!url.Contains("/questionare-fill")) {
+<div class="sidebar">
+    <NavMenu />
+</div>
+}
+<div class="main">
+
+
+    <div class="content px-4 ">
+        @Body
+    </div>
+</div>
+

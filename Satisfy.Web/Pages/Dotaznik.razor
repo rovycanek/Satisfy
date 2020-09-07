@@ -1,0 +1,339 @@
+﻿
+@inject DotaznikCreateService dotaznikCreateService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+
+@page "/questionare"
+@using Satisfy.Shared.Form
+@using Satisfy.Web.Data
+
+<style>
+    .stin-horni {
+        -webkit-box-shadow: -12px -9px 11px -1px rgba(0,0,0,0.25);
+        -moz-box-shadow: -12px -9px 11px -1px rgba(0,0,0,0.25);
+        box-shadow: -12px -9px 11px -1px rgba(0,0,0,0.25);
+    }
+
+    ul {
+        list-style: none;
+    }
+
+    li {
+        padding-bottom: 1em;
+        list-style: none;
+    }
+
+    body {
+        /*background-image: url(images/backgr.jpg);*/
+        background-size: cover;
+        background-attachment: fixed;
+    }
+
+    .mySidenav-style {
+        text-align: center;
+    }
+
+    .form-check {
+        padding-left: 0px;
+    }
+</style>
+
+<div id="stranka_dotaznik" class="container">
+
+
+    @*@if (questionnaire != null)
+        {
+
+            @for (var i = 0; i < questionnaire.Questions.Count; i++)
+            {
+                //vlož novou card (otazku)   = pridejCard()
+                // dej ji value questionnaire.Questions[@i].Text
+                JSRuntime.InvokeVoidAsync("newCard", questionnaire.Questions[@i].Text);
+
+                @for (var j = 0; j < questionnaire.Questions[@i].Answers.Count; j++)
+                {
+                    int typ = questionnaire.Questions[@i].Answers[@j].TypPrvku;
+
+                    switch (typ)
+                    {
+                        case 0:
+                            //vlož k otazce prvek textfield  = addToList(event)
+                            // jeho velue pridej text : questionnaire.Questions[@i].Answers[@j].Text;
+                            break;
+                        case 1:
+                            //vloz k otazce prvek chheckbox  = addToList(event)
+                            // jeho velue pridej text : questionnaire.Questions[@i].Answers[@j].Text;
+                            break;
+
+                        case 2:
+                            //vloz k otazce prvek radiobutton  = addToList(event)
+                            // jeho velue pridej text : questionnaire.Questions[@i].Answers[@j].Text;
+                            break;
+                    }
+
+                }
+            }
+        }*@
+
+    <li id="otazkaDefault" class="ui-state-default" style="padding-top: 0em; visibility:hidden;" runat="server">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <div class="row">
+                    <div class="col-10"><h4 id="nadpis"></h4></div>
+                    <div class="col">
+                        <img onclick="deleteCard(event)" style="visibility:hidden" width="20px;" src="https://img.icons8.com/ios-filled/50/000000/minus.png" />
+
+
+
+                    </div>
+                </div>
+
+
+            </div>
+
+            <ul id="odpovedi" runat="server" class="card-body">
+                <li id="doplnovatko" style="visibility:hidden">
+                    <div id="dropDownList" class="dropdown">
+                        <img class="dropdown-toggle" data-toggle="dropdown" src="https://img.icons8.com/ios-filled/24/000000/plus.png" />
+                        <div class="dropdown-menu">
+                            <span class="dropdown-item" onclick="addToList(event); return;">
+                                <div id="txtDefaultDiv">
+                                    <input type="text" id="txtDefault1" class="element-list form-control">
+                                </div>
+                            </span>
+                            <span class="dropdown-item" onclick="addToList(event); return;">
+                                <div id="checkTextDefaultDiv" class="element-list form-check">
+                                    <label class="form-check-label form-check-inline ">
+                                        <input type="checkbox" class="form-check-input" value=""><p id="checkTextDefault"></p>
+                                    </label>
+                                </div>
+                            </span>
+                            <span class="dropdown-item" onclick="addToList(event); return;">
+                                <div id="radioTextDefaultDiv" class="element-list form-check">
+                                    <label class="form-check-label form-check-inline ">
+                                        <input type="radio" class="form-check-input" value=""><p id="radioTextDefault"></p>
+                                    </label>
+                                </div>
+                            </span>
+                        </div>
+                    </div>
+                </li>
+
+            </ul>
+
+        </div>
+    </li>
+
+
+
+    <!-- Add all page content inside this div if you want the side nav to push page content to the right (not used if you only want the sidenav to sit on top of the page -->
+    <div id="main">
+
+
+        <div id="div1" class="stin-horni" style="width: 100%; height: auto; padding: 10px; border: 1px solid #aaaaaa; visibility:visible; background-color: rgba(255, 255, 255, 0.8);">
+            <h2 id="nazevDotazniku"></h2>
+            <ul id="sortable" class="pokusna">
+            </ul>
+
+        </div>
+
+        <hr />
+        @* <div id="div2" ondrop="dropDel(event)" ondragover="allowDrop(event)" style="width: 350px; height: 70px; padding: 10px; border: 1px solid #ff0000; background-color: rgba(249, 44, 44, 0.8);"></div>*@
+
+        <div class="row">
+            <div class="col-sm-4">
+                <!--input id="pridatKartu" type="button" class="btn btn-primary form-control" value="Nacist dotaznik" @onclick="Click"-->
+            </div>
+            <div class="col-sm-4">
+                <input id="vybratKontakty" type="button" class="btn btn-primary form-control" value="Proceed to contact selection" @onclick="ProceedToContacts">
+            </div>
+            <div class="col-sm-4">
+                <input id="cancelSend" type="button" class="btn btn-secondary form-control" value="Cancel" @onclick="CancelQuest">
+            </div>
+        </div>
+
+        <br />
+
+
+    </div>
+
+</div>
+
+
+
+@code{
+    int UserID = -1;
+    int DotaznikID = -1;
+
+    QuestionnaireGetResponse questionnaire = new QuestionnaireGetResponse();
+    //string Response;
+
+    async Task LoadDotaznik()
+    {
+
+        /* Questionnaire.Question otazka = new Questionnaire.Question();
+         Questionnaire.Question otazka2 = new Questionnaire.Question();
+         List<Questionnaire.Question.Answer> odpovedi = new List<Questionnaire.Question.Answer>();
+         Questionnaire.Question.Answer odpoved1 = new Questionnaire.Question.Answer();
+         odpoved1.Text = "Dobře";
+         odpoved1.OdpovedPoradi = 1;
+         odpoved1.TypPrvku = 1;
+
+         Questionnaire.Question.Answer odpoved2 = new Questionnaire.Question.Answer();
+         odpoved2.Text = "Špatně";
+         odpoved2.OdpovedPoradi = 2;
+         odpoved2.TypPrvku = 2;
+
+         Questionnaire.Question.Answer odpoved3 = new Questionnaire.Question.Answer();
+         odpoved3.Text = "";
+         odpoved3.OdpovedPoradi = 3;
+         odpoved3.TypPrvku = 0;
+
+         odpovedi.Add(odpoved1);
+         odpovedi.Add(odpoved2);
+         odpovedi.Add(odpoved3);
+
+         otazka.Text = "Jak se máš?";
+         otazka.OtazkaPozice = 1;
+         otazka.Answers = odpovedi;
+
+
+         //Testovací dotazník
+         questionnaire.DotaznikID = 10;
+         questionnaire.EndDate = DateTime.Now.AddDays(10);
+         questionnaire.IsPublished = true;
+         questionnaire.IsVyhodnoceny = false;
+         questionnaire.Name = "Dotazník pokusný";
+         questionnaire.StartDate = DateTime.Now.AddDays(-5);
+         questionnaire.UserID = 9;
+         questionnaire.Questions.Add(otazka);
+
+         otazka2.Text = "Po druhé jak se máš?";
+         otazka2.OtazkaPozice = 2;
+         otazka2.Answers = odpovedi;
+         questionnaire.Questions.Add(otazka2);
+
+         Click(); */
+
+        //dočasně zakomentováno pro testování
+        var response = await dotaznikCreateService.DotaznikLoad(DotaznikID);
+        questionnaire = response;
+
+
+        //TOTO je načtený dotazník, který budem upravovat
+        //Použijem ho jak při prezentaci listů, podle něho vytvoříme strukturu html znacek
+
+    }
+
+    async Task CreateDotaznik()
+    {
+        //int UserID = 9;
+        //Questionnairee questionnaire = new Questionnairee();
+
+        //TADY ZAPSAT do promenne questionaire TO CO VRATILA FCE SaveQuestions
+
+        //questionnaire=sessionStorage.GetItem(dotaznik).toJSON ?????
+
+        //var response = await dotaznikCreateService.DotaznikCreate(questionnaire);
+        //Response = response.ErrMsg;
+
+        //volání JS FUNKCE
+
+    }
+
+    public void ProceedToContacts()
+    {
+        NavigationManager.NavigateTo("contact-list");
+    }
+
+    public async void CancelQuest()
+    {
+        DotaznikID = -1;
+        //SMAZZAT dotaznikID ZE PAMĚTI -> BUDEM VYBÍRAT JINÝ DOTAZNÍK
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("DotaznikSet", DotaznikID);
+        }
+        catch { }
+
+        NavigationManager.NavigateTo("questionare-list");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //NA INICIALIZACI BUDEME BRÁT dotaznikID ZE SESSION NEBO Z KAMA SI TO POŠLEM A NA ZÁKLADĚ NĚHO NAČTEM A ZOBRAZÍME DATA
+        try
+        {
+            DotaznikID = await JSRuntime.InvokeAsync<int>("DotaznikGet");
+        }
+        catch { }
+        try
+        {
+            UserID = await JSRuntime.InvokeAsync<int>("LoginGet");
+        }
+        catch { }
+
+        await LoadDotaznik();
+        Click();
+
+    }
+
+    protected void Click()
+    {
+
+        @if (questionnaire != null)
+        {
+            JSRuntime.InvokeVoidAsync("nazevDotaznikuSet", questionnaire.Questionnaire.Name);
+            @for (var i = 0; i < questionnaire.Questionnaire.Question.Count; i++)
+            {
+                //vlož novou card (otazku)   = pridejCard()
+                // dej ji value questionnaire.Questions[@i].Text
+                JSRuntime.InvokeVoidAsync("newCard", questionnaire.Questionnaire.Question[@i].Text);
+
+                @for (var j = 0; j < questionnaire.Questionnaire.Question[@i].Answer.Count; j++)
+                {
+                    int typ = questionnaire.Questionnaire.Question[@i].Answer[@j].Type;
+
+                    switch (typ)
+                    {
+                        case 0:
+                            //vlož k otazce prvek textfield  = addToList(event)
+                            // jeho velue pridej text : questionnaire.Questions[@i].Answers[@j].Text;
+                            JSRuntime.InvokeVoidAsync("newInputEdit", questionnaire.Questionnaire.Question[@i].Answer[@j].Text);
+                            break;
+                        case 1:
+                            //vloz k otazce prvek chheckbox  = addToList(event)
+                            // jeho velue pridej text : questionnaire.Questions[@i].Answers[@j].Text;
+                            JSRuntime.InvokeVoidAsync("newCheck", questionnaire.Questionnaire.Question[@i].Answer[@j].Text);
+                            break;
+
+                        case 2:
+                            //vloz k otazce prvek radiobutton  = addToList(event)
+                            // jeho velue pridej text : questionnaire.Questions[@i].Answers[@j].Text;
+                            JSRuntime.InvokeVoidAsync("newRadio", questionnaire.Questionnaire.Question[@i].Answer[@j].Text,@i);
+
+                            break;
+                    }
+
+                }
+            }
+        }
+
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("LogedInCheck");
+        }
+        catch { }
+
+    }
+    }
+
+
+
+
+
+

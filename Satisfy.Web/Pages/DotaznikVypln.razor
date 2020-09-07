@@ -1,0 +1,325 @@
+﻿
+@inject DotaznikCreateService dotaznikCreateService;
+@inject Satisfy.Web.Data.RespondentService  respondentService;
+@inject IJSRuntime JSRuntime;
+@inject NavigationManager NavigationManager;
+
+
+@page "/questionare-fill"
+@using Satisfy.Shared.Form;
+@using Satisfy.Web.Data;
+@using Newtonsoft.Json;
+
+<style>
+    .stin-horni {
+        -webkit-box-shadow: -12px -9px 11px -1px rgba(0,0,0,0.25);
+        -moz-box-shadow: -12px -9px 11px -1px rgba(0,0,0,0.25);
+        box-shadow: -12px -9px 11px -1px rgba(0,0,0,0.25);
+    }
+
+    ul {
+        list-style: none;
+    }
+
+    li {
+        padding-bottom: 1em;
+        list-style: none;
+    }
+
+    body {
+        /*background-image: url(images/backgr.jpg);*/
+        background-size: cover;
+        background-attachment: fixed;
+    }
+
+    .mySidenav-style {
+        text-align: center;
+    }
+
+    .form-check {
+        padding-left: 0px;
+    }
+</style>
+
+<div id="stranka_dotaznik" class="container">
+
+
+    <li id="otazkaDefault" class="ui-state-default" style="padding-top: 2em; visibility:hidden;" runat="server">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <div class="row">
+                    <div class="col-10"><h4 id="nadpis"></h4></div>
+                    <div class="col">
+                        <img onclick="deleteCard(event)" style="visibility:hidden" width="20px;" src="https://img.icons8.com/ios-filled/50/000000/minus.png" />
+
+
+
+                    </div>
+                </div>
+
+
+            </div>
+
+            <ul id="odpovedi" runat="server" class="card-body">
+                <li id="doplnovatko" style="visibility:hidden">
+                    <div id="dropDownList" class="dropdown">
+                        <img class="dropdown-toggle" data-toggle="dropdown" src="https://img.icons8.com/ios-filled/24/000000/plus.png" />
+                        <div class="dropdown-menu">
+                            <span class="dropdown-item" onclick="addToList(event); return;">
+                                <div id="txtDefaultDiv">
+                                    <input type="text" id="txtDefault1" class="element-list form-control">
+                                </div>
+                            </span>
+                            <span class="dropdown-item" onclick="addToList(event); return;">
+                                <div id="checkTextDefaultDiv" class="element-list form-check">
+                                    <label class="form-check-label form-check-inline ">
+                                        <input type="checkbox" class="form-check-input" value=""><p id="checkTextDefault"></p>
+                                    </label>
+                                </div>
+                            </span>
+                            <span class="dropdown-item" onclick="addToList(event); return;">
+                                <div id="radioTextDefaultDiv" class="element-list form-check">
+                                    <label class="form-check-label form-check-inline ">
+                                        <input type="radio" class="form-check-input" value=""><p id="radioTextDefault"></p>
+                                    </label>
+                                </div>
+                            </span>
+                        </div>
+                    </div>
+                </li>
+
+            </ul>
+
+        </div>
+    </li>
+
+
+
+    <!-- Add all page content inside this div if you want the side nav to push page content to the right (not used if you only want the sidenav to sit on top of the page -->
+    <div id="main">
+
+
+        <div id="div1" class="stin-horni" style="width: 100%; height: auto; padding: 10px; border: 1px solid #aaaaaa; visibility:visible; background-color: rgba(255, 255, 255, 0.8);">
+            <h2 id="nazevDotazniku"></h2>
+            <ul id="sortable" class="pokusna">
+            </ul>
+
+        </div>
+
+        <hr />
+        @* <div id="div2" ondrop="dropDel(event)" ondragover="allowDrop(event)" style="width: 350px; height: 70px; padding: 10px; border: 1px solid #ff0000; background-color: rgba(249, 44, 44, 0.8);"></div>*@
+
+        <div class="row">
+            <div class="col-sm-4">
+                <!--input id="pridatKartu" type="button" class="btn btn-primary form-control" value="Nacist dotaznik" @onclick="Click"-->
+            </div>
+            <div class="col-sm-4">
+                <input id="vybratKontakty" type="button" class="btn btn-primary form-control" data-toggle="modal" data-target="#myModalSend" value="Send answers">
+            </div>
+            @*<div class="col-sm-4">
+                    <input id="cancelSend" type="button" class="btn btn-secondary form-control" value="Cancel" @onclick="CancelQuest">
+                </div>*@
+        </div>
+
+        <br />
+
+
+    </div>
+
+    <div class="modal fade" id="myModalSend">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Send answers?</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <p>If you do so ANSWERS WILL BE SENT and you WILL NOT BE ABLE TO CHANGE THEN ANYMORE!</p>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer" style="justify-content:center;">
+                    <button type="button" class="btn btn-outline-primary" @onclick="SendAnswer" data-dismiss="modal">Send</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+@code{
+    int UserID = -1;
+    int DotaznikID = -1;
+    int RespondentID = -1;
+
+    QuestionnaireGetResponse questionnaire = new QuestionnaireGetResponse();
+
+    public OdpovediNaDotaznik odpovediNaDotaznik { get; set; } = new OdpovediNaDotaznik();
+
+    public class OdpovediNaDotaznik
+    {
+        public List<ZodpovezenaOtazka> ZodpovezeneOtazky { get; set; } = new List<ZodpovezenaOtazka>();
+        public class ZodpovezenaOtazka
+        {
+            public int otazka { get; set; }
+            public List<VybranaOdpoved> odpovedi { get; set; } = new List<VybranaOdpoved>();
+            public class VybranaOdpoved
+            {
+                public int AnswerId { get; set; }
+                public string Text { get; set; }
+            }
+        }
+    }
+
+    async Task LoadDotaznik()
+    {
+
+        var response = await dotaznikCreateService.DotaznikLoad(DotaznikID);
+        questionnaire = response;
+
+
+        //TOTO je načtený dotazník, který budem upravovat
+        //Použijem ho jak při prezentaci listů, podle něho vytvoříme strukturu html znacek
+
+    }
+
+    async Task CreateDotaznik()
+    {
+        //int UserID = 9;
+        //Questionnairee questionnaire = new Questionnairee();
+
+        //TADY ZAPSAT do promenne questionaire TO CO VRATILA FCE SaveQuestions
+
+        //questionnaire=sessionStorage.GetItem(dotaznik).toJSON ?????
+
+        //var response = await dotaznikCreateService.DotaznikCreate(questionnaire);
+        //Response = response.ErrMsg;
+
+        //volání JS FUNKCE
+
+    }
+
+
+
+    public async void SendAnswer()
+    {
+        var jsonOdpovedi = await JSRuntime.InvokeAsync<string>("AnswerList");
+        //var jsonOdpovedi = await JSRuntime.InvokeAsync<OdpovediNaDotaznik>("AnswerList");
+        OdpovediNaDotaznik odpovedi = JsonConvert.DeserializeObject<OdpovediNaDotaznik>(jsonOdpovedi);
+
+        string text = "";
+        int otazkaID = -1;
+        int odpovedID = -1;
+
+        // VE FORU PROJÍT jsonODPOVEDI A JEDNU PO DRUHE POSILAT TOUTO SERVISKOU S PŘIŘAZENÝMA PARAMETRAMA
+        for (var i = 0; i < odpovedi.ZodpovezeneOtazky.Count(); i++)
+        {
+            var odpoved = odpovedi.ZodpovezeneOtazky[i];
+            otazkaID = odpoved.otazka;
+
+            for (var j = 0; j < odpoved.odpovedi.Count(); j++)
+            {
+                odpovedID = odpoved.odpovedi[j].AnswerId;
+                text = odpoved.odpovedi[j].Text;
+                await respondentService.SaveResponse(DotaznikID, otazkaID, text, RespondentID, odpovedID);
+            }
+        }
+
+        NavigationManager.NavigateTo("/");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //TADY MUSIME ZISKAT RESPONDENT ID Z URL
+        RespondentID = -1;
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        //string param;
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("respondentID", out var param))
+        {
+            string pomstr = param.First();
+            RespondentID = Convert.ToInt32(pomstr);
+        }
+
+        //ZJISTÍME PAVLOVOU SERVISKOU JESTLI UŽ ODPOVĚDĚL RESPONDED A PODLE TOHO ZOBRAZIME DOTAZNIK NEBO ZAMITNEM PRISTUP
+        var odpovedel = await respondentService.Responded(RespondentID);
+
+        if (odpovedel.Responded)
+        {
+            //zdarec
+            NavigationManager.NavigateTo("restricted");
+        }
+        else
+        {
+            //TADY NAČTEME ID DOTAZNÍKU - POUŽIJEM SERVISKU OD PAVLA KTERÉ DÁME RESPONDENT ID(Z URL) A ZÍSKÁME HO
+            var dotaznik_response = await respondentService.GetDotaznikID(RespondentID);
+            DotaznikID = dotaznik_response.DotaznikID;
+            //DotaznikID = 93;
+            await LoadDotaznik();
+            Click();
+        }
+
+    }
+
+    protected void Click()
+    {
+
+        @if (questionnaire != null)
+        {
+            JSRuntime.InvokeVoidAsync("nazevDotaznikuSet", questionnaire.Questionnaire.Name);
+            @for (var i = 0; i < questionnaire.Questionnaire.Question.Count; i++)
+            {
+                //vlož novou card (otazku)   = pridejCard()
+                // dej ji value questionnaire.Questions[@i].Text
+                JSRuntime.InvokeVoidAsync("newCardFill", questionnaire.Questionnaire.Question[@i].Text, questionnaire.Questionnaire.Question[@i].QuestionId);
+
+                @for (var j = 0; j < questionnaire.Questionnaire.Question[@i].Answer.Count; j++)
+                {
+                    int typ = questionnaire.Questionnaire.Question[@i].Answer[@j].Type;
+
+                    switch (typ)
+                    {
+                        case 0:
+                            //vlož k otazce prvek textfield  = addToList(event)
+                            // jeho velue pridej text : questionnaire.Questions[@i].Answers[@j].Text;
+                            JSRuntime.InvokeVoidAsync("newInput", questionnaire.Questionnaire.Question[@i].Answer[@j].AnswerId);
+                            break;
+                        case 1:
+                            //vloz k otazce prvek chheckbox  = addToList(event)
+                            // jeho velue pridej text : questionnaire.Questions[@i].Answers[@j].Text;
+                            JSRuntime.InvokeVoidAsync("newCheckFill", questionnaire.Questionnaire.Question[@i].Answer[@j].Text, questionnaire.Questionnaire.Question[@i].Answer[@j].AnswerId);
+                            break;
+
+                        case 2:
+                            //vloz k otazce prvek radiobutton  = addToList(event)
+                            // jeho velue pridej text : questionnaire.Questions[@i].Answers[@j].Text;
+                            JSRuntime.InvokeVoidAsync("newRadioFill", questionnaire.Questionnaire.Question[@i].Answer[@j].Text, @i, questionnaire.Questionnaire.Question[@i].Answer[@j].AnswerId);
+
+                            break;
+                    }
+
+                }
+            }
+        }
+
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        UserID = await JSRuntime.InvokeAsync<Int32>("LoginGet");
+        //await JSRuntime.InvokeVoidAsync("LogedInCheck");
+
+    }
+}
+
+
+
+
+
+

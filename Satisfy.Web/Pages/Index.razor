@@ -1,0 +1,66 @@
+﻿@inject IJSRuntime JSRuntime;
+
+@page "/"
+
+<style>
+    body {
+        /*background-image: url(images/backgr.jpg);*/
+        background-size: cover;
+        background-attachment: fixed;
+    }
+
+    .separator {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: gray;
+    }
+
+        .separator::before, .separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid;
+            color: gray;
+        }
+
+        .separator::before {
+            margin-right: .25em;
+        }
+
+        .separator::after {
+            margin-left: .25em;
+        }
+</style>
+
+<div class="text-center">
+
+    <img src="images/SATISFY-LOGO-01.png" style="width:500px; margin-top:50px;" />
+
+    <div class="container d-flex align-items-center flex-column">
+
+        <!-- Masthead Heading -->
+        <h1 class="masthead-heading text-uppercase mb-0" style="color:black">One step from clients opinion</h1>
+
+        <hr style="color:black; width:150px;" />
+        <!-- Masthead Subheading -->
+        <p class="masthead-subheading font-weight-light mb-0" style="color:black">Questionnaire - Statistics - Support</p>
+
+    </div>
+
+</div>
+
+@code{
+
+    protected override async Task OnInitializedAsync()
+    {
+        int DotaznikID = -1;
+        //SMAZZAT dotaznikID ZE PAMĚTI -> BUDEM VYBÍRAT JINÝ DOTAZNÍK
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("DotaznikSet", DotaznikID);
+        }
+        catch { }
+
+    }
+}
+

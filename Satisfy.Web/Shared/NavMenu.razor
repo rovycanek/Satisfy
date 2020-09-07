@@ -1,0 +1,70 @@
+﻿@inject IJSRuntime JSRuntime;
+@inject NavigationManager NavigationManager
+<style type="text/css">
+    .footer {
+        position: fixed;
+        text-align: center;
+        bottom: 0px;
+        padding-left: 2em;
+        /*width: 100%;*/
+    }
+</style>
+
+<div class="top-row pl-4 navbar navbar-dark" onload="signedIn()">
+    <a class="navbar-brand" href="./">Satisfy</a>
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+<div id="menu" class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </li>
+        <li id="loginMenu" style="display:normal" class="nav-item px-3">
+            <NavLink class="nav-link" href="login">
+                <span class="oi oi-account-login" aria-hidden="true"></span> Login
+            </NavLink>
+        </li>
+        <div id="menuLogedIn" style="display:none">
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="questionare-create">
+                    <span class="oi oi-question-mark" aria-hidden="true"></span> Questionare add
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="questionare-list">
+                    <span class="oi oi-list" aria-hidden="true"></span> Questionare list
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="contact-list">
+                    <span class="oi oi-people" aria-hidden="true"></span> Contact list
+                </NavLink>
+            </li>
+        </div>
+    </ul>
+</div>
+<div class="footer" id="loginPart" style="visibility:hidden">
+    <p style="color:white">You are logged in.</p><a style="color:red" @onclick="Logout">Logout</a>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    private void Logout()
+    {
+        JSRuntime.InvokeVoidAsync("LoginSet", "");
+        JSRuntime.InvokeVoidAsync("signedIn");
+        NavigationManager.NavigateTo("./");
+    }
+}

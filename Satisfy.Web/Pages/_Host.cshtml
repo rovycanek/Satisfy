@@ -1,0 +1,720 @@
+﻿@page "/"
+@namespace Satisfy.Web.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Satisfy.Web</title>
+    <base href="~/" />
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link href="css/site.css" rel="stylesheet" />
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <app>
+        <component type="typeof(App)" render-mode="ServerPrerendered" />
+    </app>
+
+    <div id="blazor-error-ui">
+        <environment include="Staging,Production">
+            An error has occurred. This application may no longer respond until reloaded.
+        </environment>
+        <environment include="Development">
+            An unhandled exception has occurred. See browser dev tools for details.
+        </environment>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="_framework/blazor.server.js"></script>
+
+</body>
+</html>
+
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<script>
+    count = 1;
+    id_otazky = 0;
+
+    function newNazevDotaznikuEdit(nazevDotazniku) {
+        console.log("Přidání názvu");
+        document.getElementById("nazevDotazniku").value = nazevDotazniku;
+        /*
+                card.style.visibility = "visible";
+                nodeCopy.style.visibility = "visible";
+                var otazkaText = nodeCopy.children[0].children[0].children[0].children[0].children[0];
+                otazkaText.value = nazevOtazky;
+        
+                count++;*/
+    }
+
+    function newCard(nazevOtazky) {
+        console.log("Přidání card");
+        var nodeCopy = document.getElementById("otazkaDefault").cloneNode(true);
+        var card = document.getElementById("div1");
+
+        card.style.visibility = "visible";
+        nodeCopy.style.visibility = "visible";
+        var otazkaText = nodeCopy.children[0].children[0].children[0].children[0].children[0];
+        otazkaText.innerText = nazevOtazky;
+        var masterdiv = document.getElementById("sortable");
+        nodeCopy.id = "otazka" + count; /* We cannot use the same ID */
+        nodeCopy.childNodes[1].childNodes[3].id = "seznam" + count;
+        id_otazky = nodeCopy.childNodes[1].childNodes[3].id;
+        masterdiv.appendChild(nodeCopy);
+
+        count++;
+    }
+
+    function newCardEdit(nazevOtazky) {
+        console.log("Přidání card");
+        var nodeCopy = document.getElementById("otazkaDefault").cloneNode(true);
+        var card = document.getElementById("div1");
+
+        card.style.visibility = "visible";
+        nodeCopy.style.visibility = "visible";
+        var otazkaText = nodeCopy.children[0].children[0].children[0].children[0].children[0];
+        otazkaText.value = nazevOtazky;
+        var masterdiv = document.getElementById("sortable");
+        nodeCopy.id = "otazka" + count; /* We cannot use the same ID */
+        nodeCopy.childNodes[1].childNodes[3].id = "seznam" + count;
+        id_otazky = nodeCopy.childNodes[1].childNodes[3].id;
+        masterdiv.appendChild(nodeCopy);
+
+        count++;
+    }
+
+    function newRadio(odpoved, i) {
+        console.log(newRadio);
+        var seznamID = id_otazky;
+        var node = document.createElement("input");
+        var div = document.createElement("div");
+        var label = document.createElement("label");
+        label.textContent = odpoved;
+        div.id = "radio" + count;
+        console.log(node);
+        node.setAttribute("type", "radio");
+        node.setAttribute("name", "otazka" + i);
+        console.log(node);
+        node.id = count;
+        count = count + 1;
+        label.htmlFor = node.id;
+        // console.log(nodeCopy);
+        div.appendChild(node);
+        div.appendChild(label);
+
+        var newNode = document.createElement("LI");
+        newNode.appendChild(div);
+        console.log(document.getElementById(seznamID));
+        document.getElementById(seznamID).appendChild(newNode);
+    }
+
+    function newCheck(odpoved) {
+        console.log(newRadio);
+        var seznamID = id_otazky;
+        var node = document.createElement("input");
+        var div = document.createElement("div");
+        var label = document.createElement("label");
+        label.textContent = odpoved;
+        div.id = "check" + count;
+
+        node.setAttribute("type", "checkbox");
+
+        node.id = count;
+        count = count + 1;
+        label.htmlFor = node.id;
+
+        div.appendChild(node);
+        div.appendChild(label);
+
+        var newNode = document.createElement("LI");
+        newNode.appendChild(div);
+        console.log(document.getElementById(seznamID));
+        document.getElementById(seznamID).appendChild(newNode);
+    }
+
+    function newInput(id) {
+        console.log(newRadio);
+        var seznamID = id_otazky;
+        var node = document.createElement("input");
+        var div = document.createElement("div");
+        div.id = "check" + count;
+        node.setAttribute("type", "text");
+        node.id = id;
+        count = count + 1;
+        div.appendChild(node);
+        var newNode = document.createElement("LI");
+        newNode.appendChild(div);
+        console.log(document.getElementById(seznamID));
+        document.getElementById(seznamID).appendChild(newNode);
+    }
+
+    function newInputEdit(odpoved) {
+
+        var seznamID = id_otazky;
+
+        var text = document.createElement("input");
+        var div = document.createElement("div");
+        var label = document.createElement("label");
+        label.className = "form-check-label form-check-inline";
+        div.id = "txt" + count;
+        text.setAttribute("type", "text");
+
+        text.value = odpoved;
+        text.id = "txt" + count;
+        count = count + 1;
+        div.appendChild(label);
+
+        label.appendChild(text);
+
+        var newNode = document.createElement("LI");
+        newNode.appendChild(div);
+        console.log(document.getElementById(seznamID));
+        document.getElementById(seznamID).appendChild(newNode);
+    }
+
+
+    function newRadioEdit(odpoved) {
+        console.log("newRadioEdit");
+        var seznamID = id_otazky;
+        var node = document.createElement("input");
+        var text = document.createElement("input");
+        var div = document.createElement("div");
+        var label = document.createElement("label");
+        label.className = "form-check-label form-check-inline";
+        div.id = "radio" + count;
+
+        node.setAttribute("type", "radio");
+        text.setAttribute("type", "text");
+
+        text.value = odpoved;
+        text.id = "radio" + count;
+        node.id = count;
+        count = count + 1;
+        div.appendChild(label);
+        label.appendChild(node);
+        label.appendChild(text);
+
+        var newNode = document.createElement("LI");
+        newNode.appendChild(div);
+        console.log(document.getElementById(seznamID));
+        document.getElementById(seznamID).appendChild(newNode);
+    }
+
+    function newCheckEdit(odpoved) {
+        console.log("newCheckEdit");
+        var seznamID = id_otazky;
+        var node = document.createElement("input");
+        var text = document.createElement("input");
+        var div = document.createElement("div");
+        var label = document.createElement("label");
+        label.className = "form-check-label form-check-inline";
+        div.id = "check" + count;
+
+        node.setAttribute("type", "checkbox");
+        text.setAttribute("type", "text");
+
+        text.value = odpoved;
+        text.id = "check" + count;
+        node.id = count;
+        count = count + 1;
+        div.appendChild(label);
+        label.appendChild(node);
+        label.appendChild(text);
+
+        var newNode = document.createElement("LI");
+        newNode.appendChild(div);
+        console.log(document.getElementById(seznamID));
+        document.getElementById(seznamID).appendChild(newNode);
+    }
+
+    function newCardFill(nazevOtazky, otazkaID) {
+        console.log("Přidání card");
+        var nodeCopy = document.getElementById("otazkaDefault").cloneNode(true);
+        var card = document.getElementById("div1");
+
+        card.style.visibility = "visible";
+        nodeCopy.style.visibility = "visible";
+        nodeCopy.value = otazkaID;
+        var otazkaText = nodeCopy.children[0].children[0].children[0].children[0].children[0];
+        otazkaText.innerText = nazevOtazky;
+        var masterdiv = document.getElementById("sortable");
+        nodeCopy.id = "otazka" + count; /* We cannot use the same ID */
+        nodeCopy.childNodes[1].childNodes[3].id = "seznam" + count;
+        id_otazky = nodeCopy.childNodes[1].childNodes[3].id;
+        masterdiv.appendChild(nodeCopy);
+
+        count++;
+    }
+
+    function newRadioFill(odpoved, i, odpovedID) {
+        console.log(newRadio);
+        var seznamID = id_otazky;
+        var node = document.createElement("input");
+        var div = document.createElement("div");
+        var label = document.createElement("label");
+        label.textContent = odpoved;
+        div.id = "radio" + count;
+        console.log(node);
+        node.setAttribute("type", "radio");
+        node.setAttribute("name", "otazka" + i);
+        node.setAttribute("value", odpovedID);
+        console.log(node);
+        node.id = count;
+        count = count + 1;
+        label.htmlFor = node.id;
+        // console.log(nodeCopy);
+        div.appendChild(node);
+        div.appendChild(label);
+
+        var newNode = document.createElement("LI");
+        newNode.appendChild(div);
+        console.log(document.getElementById(seznamID));
+        document.getElementById(seznamID).appendChild(newNode);
+    }
+
+    function newCheckFill(odpoved,odpovedID) {
+        console.log(newRadio);
+        var seznamID = id_otazky;
+        var node = document.createElement("input");
+        var div = document.createElement("div");
+        var label = document.createElement("label");
+        label.textContent = odpoved;
+        div.id = "check" + count;
+
+        node.setAttribute("type", "checkbox");
+        node.setAttribute("value", odpovedID);
+
+        node.id = count;
+        count = count + 1;
+        label.htmlFor = node.id;
+
+        div.appendChild(node);
+        div.appendChild(label);
+
+        var newNode = document.createElement("LI");
+        newNode.appendChild(div);
+        console.log(document.getElementById(seznamID));
+        document.getElementById(seznamID).appendChild(newNode);
+    }
+
+</script>
+
+
+
+<script>
+
+
+    function pridejCard() {
+        console.log("Přidání card");
+        var nodeCopy = document.getElementById("otazkaDefault").cloneNode(true);
+        var card = document.getElementById("div1");
+        card.style.visibility = "visible";
+        nodeCopy.style.visibility = "visible";
+        var masterdiv = document.getElementById("sortable");
+        //var count = getCount(masterdiv, false);
+        nodeCopy.id = "otazka" + count; /* We cannot use the same ID */
+        nodeCopy.childNodes[1].childNodes[3].id = "seznam" + count;
+        masterdiv.appendChild(nodeCopy);
+        count++;
+    }
+
+    //Počítá prvky v elementu
+    function getCount(parent, getChildrensChildren) {
+        var relevantChildren = 0;
+        var children = parent.childNodes.length;
+        for (var i = 0; i < children; i++) {
+            if (parent.childNodes[i].nodeType != 3) {
+                if (getChildrensChildren)
+                    relevantChildren += getCount(parent.childNodes[i], true);
+                relevantChildren++;
+            }
+        }
+        return relevantChildren;
+    }
+
+
+    $(function () {
+        $("#sortable").sortable();
+        $("#sortable").disableSelection();
+
+    });
+
+
+
+    function openNav() {
+        var sirka_menu = document.getElementById("menu").offsetWidth;
+        sirka_menu += 250;
+        //document.getElementById("mySidenav").style.marginLeft = 250+sirka_menu+"px";
+        document.getElementById("mySidenav").style.width = sirka_menu + "px";
+        document.getElementById("main").style.marginLeft = "250px";
+    }
+
+    /* Set the width of the side navigation to 0 and the left margin of the page content to 0 */
+    function closeNav() {
+        document.getElementById("mySidenav").style.width = "0";
+        document.getElementById("main").style.marginLeft = "0";
+    }
+
+
+    function addToList(e) {
+
+        var seznamID = $(e.target).closest("ul").attr("id");
+
+        var node = $(e.target).closest("div")[0];
+        var nodeCopy = node.cloneNode(true);
+        console.log(nodeCopy);
+        nodeCopy.id = count;
+        count = count + 1;
+        // console.log(nodeCopy);
+        var node = document.createElement("LI");
+        node.appendChild(nodeCopy);
+        console.log(document.getElementById(seznamID));
+        document.getElementById(seznamID).appendChild(node);
+    }
+
+    function deleteCard(e) {
+        var cardID = e.target.parentNode.parentNode.parentNode.parentNode.parentNode.id;
+        console.log(cardID)
+        document.getElementById(cardID).remove();
+    }
+
+    function SaveQuestions() {
+        var seznamOtazek = document.getElementById("sortable");
+       // var items = seznamOtazek.getElementsByTagName("li");
+        var nazevDotazniku = document.getElementById("nazevDotazniku");
+        var nameDotaznik = nazevDotazniku.value;
+        //alert("Dotazník " + nameDotaznik + "byl uložen!");
+        var dotaznikObj = {
+            QuestionnaireId: 0, Name: nameDotaznik, IsPublished: false, IsEvaluated: false, UserId: 9, StartDate: "2020-01-01T00:00:00.000", EndDate: "2053-01-01T00:00:00.000", Question: []
+        };
+        var otazkaObj = { Text: "", QuestionPosition: 0, Answer: [] };
+        //var odpovedObj = { Text: "", AnswerPosition: 0, Type: 0 };
+
+        for (var i = 0; i < seznamOtazek.children.length; ++i) {
+            // do something with items[i], which is a <li> element
+            var otazka = seznamOtazek.children[i];
+           // var items = otazka.getElementsByTagName("li");
+            //console.log(seznamOtazek.children[i]);
+            var id_otazky = otazka.id;
+            //console.log("ID OTazky: " + id_otazky);
+            var otazka_nazev = otazka.children[0].children[0].children[0].children[0].children[0];
+            //získání názvu otázky - získání otázky
+            var otazka_value = otazka_nazev.value;
+            //console.log(otazka_value)
+            var odpovedi = $("#" + id_otazky + " :input[type=text]");
+
+            //dotaznikObj.dotaznikID = 21;
+            otazkaObj.Text = otazka_value;
+
+            dotaznikObj.Question.push({ Text: "", QuestionPosition: 0, Answer: [] });
+            dotaznikObj.Question[dotaznikObj.Question.length - 1].Text = otazka_value;
+
+            //console.log(dotaznikObj);
+
+            var pomOdpovedi = [];
+
+            for (var j = 4; j < odpovedi.length; j++) {
+                //console.log(odpovedi[j]);
+                //console.log(odpovedi[j].value);
+                //skoro hotovo, můžeš to vidět v konzoli po kliku na save
+                //stačí kontrolovat ID a podle toho rozhodneš jaký je to typ a uložíš value do pole, na konci stačí udělat POST a uložit do DB
+                pomOdpovedi.push({ Text: "", QuestionPosition: 0, Type: 0 });
+                console.log(odpovedi[j].id);
+                switch (odpovedi[j].id) {
+                    case "txtDefault1":
+                        //odpovedObj.typPrvku = 0;
+                        
+                        pomOdpovedi[pomOdpovedi.length - 1].Type = 0;
+                        break;
+                    case "checkTextDefault":
+                        //odpovedObj.typPrvku = 1;
+                        pomOdpovedi[pomOdpovedi.length - 1].Type = 1;
+                        break;
+                    case "radioTextDefault":
+                        //odpovedObj.typPrvku = 2;
+                        pomOdpovedi[pomOdpovedi.length - 1].Type = 2;
+                        break;
+
+                    default:
+                        var idcko = odpovedi[j].id;
+                        if (idcko.includes("txt")) {
+                            pomOdpovedi[pomOdpovedi.length - 1].Type = 0;
+                            break;
+                        } else if (idcko.includes("check")) {
+                            pomOdpovedi[pomOdpovedi.length - 1].Type = 1;
+                            break;
+                        } else if (idcko.includes("radio")) {
+                            pomOdpovedi[pomOdpovedi.length - 1].Type = 2;
+                            break;
+                        }
+                        break;
+                    
+                }
+                pomOdpovedi[pomOdpovedi.length - 1].Text = odpovedi[j].value;
+                //console.log(pomOdpovedi[pomOdpovedi.length - 1].Text);
+
+                //pomOdpovedi[pomOdpovedi.length - 1].text = odpovedi[j].value;
+                //console.log(pomOdpovedi);
+
+                //dotaznikObj.otazky[dotaznikObj.otazky.length - 1].odpovedi[dotaznikObj.otazky[dotaznikObj.otazky.length - 1].odpovedi.length] = odpovedObj;
+                //dotaznikObj.otazky[dotaznikObj.otazky.length - 1].odpovedi[dotaznikObj.otazky[dotaznikObj.otazky.length - 1].odpovedi.length - 1].text = odpovedi[j].value;
+                //dotaznikObj.otazky[dotaznikObj.otazky.length - 1].odpovedi[dotaznikObj.otazky[dotaznikObj.otazky.length - 1].odpovedi.length - 1].typPrvku = pomtypprvku;
+
+            }
+            dotaznikObj.Question[dotaznikObj.Question.length - 1].Answer = pomOdpovedi;
+            //console.log(dotaznikObj);
+            //console.log(JSON.stringify(dotaznikObj));
+        }
+
+        //var jsonString = JSON.stringify(dotaznikObj);
+        return dotaznikObj;
+        // return doatznikObj;  ???
+
+        //odeslat dotaznikOBj jako vysledek funkce - (má strukturu jako questionaire)
+        //použít ho jako vystup pro proměnou questionaire - priradit ho do ní a zavolat servisku <= na razor page
+
+
+    }
+
+    function nazevDotaznikuSet(nazev) {
+        var nazevDotazniku = document.getElementById("nazevDotazniku");
+        nazevDotazniku.innerHTML = nazev;
+    }
+
+</script>
+<script>
+    function LoginSet(userID) {
+        sessionStorage.setItem("userID", userID);
+    }
+
+    function LoginGet() {
+        var userExist = sessionStorage.getItem("userID");
+        if (isEmpty(userExist)) {
+            return -1;
+        } else {
+            //musí být překonvertované na Int
+            return Number(userExist);
+        }
+    }
+
+    function DotaznikSet(dotaznikID) {
+        sessionStorage.setItem("dotaznikID", dotaznikID);
+    }
+
+    function DotaznikGet() {
+        var dotaznikExist = sessionStorage.getItem("dotaznikID");
+        if (isEmpty(dotaznikExist)) {
+            return false;
+        } else {
+            //musí být překonvertované na Int
+            return Number(dotaznikExist);
+        }
+    }
+
+    function RespondentSet(respondentID) {
+        sessionStorage.setItem("respondentID", respondentID);
+    }
+
+    function RespondentGet() {
+        var respondentExist = sessionStorage.getItem("respondentID");
+        if (isEmpty(respondentExist)) {
+            return false;
+        } else {
+            //musí být překonvertované na Int
+            return Number(respondentExist);
+        }
+    }
+
+    function isEmpty(str) {
+        return (!str || 0 === str.length || str === -1);
+    }
+
+    function signedIn() {
+        var userExist = sessionStorage.getItem("userID");
+        if (isEmpty(userExist)) {
+            console.log("Nejsem přihlášený!");
+            var napis = document.getElementById("loginPart");
+            var menu = document.getElementById("menuLogedIn");
+            var login = document.getElementById("loginMenu");
+            napis.style.visibility = "hidden";
+            menu.style.display = "none";
+            login.style.display = "";
+
+        } else {
+            console.log("Jsme přihlášený!");
+            var napis = document.getElementById("loginPart");
+            var menu = document.getElementById("menuLogedIn");
+            var login = document.getElementById("loginMenu");
+            napis.style.visibility = "visible";
+            menu.style.display = "";
+            login.style.display = "none";
+
+        }
+    }
+
+    function LogedInCheck() {
+        var id = LoginGet();
+        if (id <= 0) {
+            console.log("Redirect because Restricted");
+            window.location.href = "restricted";
+        }
+    }
+</script>
+<script>
+
+    function ContactList() {
+        var tableContact = document.getElementById("contact-list-table");
+        //Reference the CheckBoxes in Table.
+        var checkBoxes = tableContact.getElementsByTagName("INPUT");
+        var seznamIDKontaktu = [];
+        var j = 0;
+        for (var i = 0; i < checkBoxes.length; i++) {
+            if (checkBoxes[i].checked) {
+                seznamIDKontaktu[j] = checkBoxes[i].value;
+                j++;
+            }
+        }
+        return String(seznamIDKontaktu);
+    }
+
+    function SelectAllChecks() {
+        var tableContact = document.getElementById("contact-list-table");
+        //Reference the CheckBoxes in Table.
+        var checkBoxes = tableContact.getElementsByTagName("INPUT");
+        for (var i = 0; i < checkBoxes.length; i++) {
+            checkBoxes[i].checked=true;
+        }
+    }
+
+    function DownloadCSV(CsvList) {
+        var rows = CsvList;
+
+        let csvContent = "data:text/csv;charset=utf-8," 
+                         + rows.map(e => e.join(",")).join("\n");
+        var encodedUri = encodeURI(csvContent);
+        var link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "evaluate.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+ 
+    }
+
+    function AnswerList() {
+        var tableQuestions = document.getElementById("sortable");
+        //Reference the CheckBoxes in Table.
+        var listQuestions = tableQuestions.childNodes;
+
+        var odpovediVse = [];
+        for (var i = 1; i < listQuestions.length; i++) {
+            var otazky = listQuestions[i].childNodes[1].childNodes[3].children;
+            var k = 0;
+            var poleOdpovedi = [];
+            console.log("OLI ");
+           // console.log(otazky);
+            console.log(listQuestions[i].value);
+            var otazkaID = 0;
+
+            for (var j = 1; j < otazky.length; j++) {
+                var otazkaVnitrek = otazky[j].children[0].children;
+                console.log(otazkaVnitrek);
+                console.log(otazkaVnitrek);
+                if (otazkaVnitrek.length == 2) {
+                    //zkontroluju checkbox a vezmu hodnotu
+                    if (otazkaVnitrek[0].checked) {
+                        poleOdpovedi[k] = { AnswerID: otazkaVnitrek[0].value , Text: "" };  //otazkaVnitrek[1].textContent
+                        k++;
+                    }
+
+                } else {
+                    var prazdne = isEmpty(otazkaVnitrek[0].value);
+                    if (prazdne == false) {
+                        poleOdpovedi[k] = { AnswerID: otazkaVnitrek[0].id, Text: otazkaVnitrek[0].value };
+                        k++;
+                    }
+                    //zkontroluju jestli je prázdný a vezmu hodnotu
+                }
+
+            }          //TADY je natvrdo i <- musíme tam místo "i" dat to co je ve value u otázky => podobně jako u odpovedi: otazkaVnitrek[0].value
+            var seznamOtazek = { otazka: listQuestions[i].value, odpovedi: poleOdpovedi };
+            odpovediVse[i - 1] = seznamOtazek;
+            seznamOtazek = null;
+            poleOdpovedi = null;
+            k = 0;
+
+        }
+        alert("Your answers were saved succesfully!");
+        return JSON.stringify({ ZodpovezeneOtazky: odpovediVse });
+        //return {ZodpovezeneOtazky: odpovediVse };
+    }
+
+</script>
+
+<script>
+    function sortTable(n) {
+        var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+        table = document.getElementById("contactListTable");
+        switching = true;
+        // Set the sorting direction to ascending:
+        dir = "asc";
+        /* Make a loop that will continue until
+        no switching has been done: */
+        while (switching) {
+            // Start by saying: no switching is done:
+            switching = false;
+            rows = table.rows;
+            /* Loop through all table rows (except the
+            first, which contains table headers): */
+            for (i = 1; i < (rows.length - 2); i++) {
+                // Start by saying there should be no switching:
+                shouldSwitch = false;
+                /* Get the two elements you want to compare,
+                one from current row and one from the next: */
+                x = rows[i].getElementsByTagName("TD")[n];
+                y = rows[i + 1].getElementsByTagName("TD")[n];
+                /* Check if the two rows should switch place,
+                based on the direction, asc or desc: */
+                if (dir == "asc") {
+                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                        // If so, mark as a switch and break the loop:
+                        shouldSwitch = true;
+                        break;
+                    }
+                } else if (dir == "desc") {
+                    if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                        // If so, mark as a switch and break the loop:
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+            }
+            if (shouldSwitch) {
+                /* If a switch has been marked, make the switch
+                and mark that a switch has been done: */
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                // Each time a switch is done, increase this count by 1:
+                switchcount++;
+            } else {
+                /* If no switching has been done AND the direction is "asc",
+                set the direction to "desc" and run the while loop again. */
+                if (switchcount == 0 && dir == "asc") {
+                    dir = "desc";
+                    switching = true;
+                }
+            }
+        }
+    }
+</script>

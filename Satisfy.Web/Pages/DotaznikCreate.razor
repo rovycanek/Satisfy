@@ -1,0 +1,182 @@
+﻿@inject DotaznikCreateService dotaznikCreateService
+@inject IJSRuntime JSRuntime;
+@inject NavigationManager NavigationManager
+
+@page "/questionare-create"
+@using Satisfy.Shared.Form
+@using Satisfy.Web.Data
+
+<style>
+    .stin-horni {
+        -webkit-box-shadow: -12px -9px 11px -1px rgba(0,0,0,0.25);
+        -moz-box-shadow: -12px -9px 11px -1px rgba(0,0,0,0.25);
+        box-shadow: -12px -9px 11px -1px rgba(0,0,0,0.25);
+    }
+
+    ul {
+        list-style: none;
+    }
+
+    li {
+        padding-bottom: 1em;
+        list-style: none;
+    }
+
+    body {
+        /*background-image: url(images/backgr.jpg);*/
+        background-size: cover;
+        background-attachment: fixed;
+    }
+
+    .mySidenav-style {
+        text-align: center;
+    }
+
+    .form-check {
+        padding-left: 0px;
+    }
+</style>
+
+<div id="stranka_dotaznik" class="container">
+
+    <li id="otazkaDefault" class="ui-state-default" style="padding-top: 2em; visibility:hidden;" runat="server">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <div class="row">
+                    <div class="col-10"><input type="text" class="form-control" placeholder="Question" /></div>
+                    <div class="col">
+                        <img onclick="deleteCard(event)" width="20px;" src="https://img.icons8.com/ios-filled/50/000000/minus.png" />
+
+
+
+                    </div>
+                </div>
+
+
+            </div>
+
+            <ul id="odpovedi" runat="server" class="card-body">
+                <li>
+                    <div id="dropDownList" class="dropdown">
+                        <img class="dropdown-toggle" data-toggle="dropdown" src="https://img.icons8.com/ios-filled/24/000000/plus.png" />
+                        <div class="dropdown-menu">
+                            <span class="dropdown-item" onclick="addToList(event); return;">
+                                <div id="txtDefaultDiv">
+                                    <input type="text" id="txtDefault1" class="element-list form-control">
+                                </div>
+                            </span>
+                            <span class="dropdown-item" onclick="addToList(event); return;">
+                                <div id="checkTextDefaultDiv" class="element-list form-check">
+                                    <label class="form-check-label form-check-inline ">
+                                        <input type="checkbox" class="form-check-input" value=""><input type="text" id="checkTextDefault" />
+                                    </label>
+                                </div>
+                            </span>
+                            <span class="dropdown-item" onclick="addToList(event); return;">
+                                <div id="radioTextDefaultDiv" class="element-list form-check">
+                                    <label class="form-check-label form-check-inline ">
+                                        <input type="radio" class="form-check-input" value=""><input type="text" id="radioTextDefault" />
+                                    </label>
+                                </div>
+                            </span>
+                        </div>
+                    </div>
+                </li>
+
+            </ul>
+
+        </div>
+    </li>
+
+
+
+    <!-- Add all page content inside this div if you want the side nav to push page content to the right (not used if you only want the sidenav to sit on top of the page -->
+    <div id="main">
+        <!-- Use any element to open the sidenav -->
+
+
+        <div id="div1" class="stin-horni" style="width: 100%; height: auto; padding: 10px; border: 1px solid #aaaaaa; visibility:hidden; background-color: rgba(255, 255, 255, 0.8);">
+            <input type="text" class="form-control"  id="nazevDotazniku" placeholder="Questionnaire name"/>
+            <ul id="sortable">
+            </ul>
+
+        </div>
+
+        <hr />
+        @* <div id="div2" ondrop="dropDel(event)" ondragover="allowDrop(event)" style="width: 350px; height: 70px; padding: 10px; border: 1px solid #ff0000; background-color: rgba(249, 44, 44, 0.8);"></div>*@
+
+        <div class="row">
+            <div class="col-sm-6">
+                <input id="pridatKartu" type="button" class="btn btn-primary form-control" onclick="pridejCard()" value="Add card">
+            </div>
+            <div class="col-sm-6">
+                <input id="saveQuestionare" type="button" class="btn btn-success form-control" value="Save" @onclick="CreateDotaznik">
+            </div>                                                                                         <!---TADY ZISKAT CO VRÁTÍ FCE SAVEQUESTIONS  A POUZIT JAKO ARGUMENT PRO CREATEDOTAZNIK-->
+        </div>
+
+        <br />
+
+
+    </div>
+
+</div>
+
+
+
+
+
+
+@code{
+
+    //string Response;
+
+    protected async void CreateDotaznik()
+    {
+
+        var UserID = await JSRuntime.InvokeAsync<Int32>("LoginGet");
+
+        //TADY ZAPSAT do promenne questionaire TO CO VRATILA FCE SaveQuestions
+        var dotaznikObj = await JSRuntime.InvokeAsync<QuestionnaireSaveRequest.QuestionnaireSave>("SaveQuestions");
+        dotaznikObj.UserId = UserID;
+        await dotaznikCreateService.DotaznikCreate(new QuestionnaireSaveRequest
+        {
+            Questionnaire = dotaznikObj
+        });
+        NavigationManager.NavigateTo("questionare-list");
+
+        ////questionnaire=sessionStorage.GetItem(dotaznik).toJSON ?????
+        //    questionnaire.DotaznikID = 0;
+        //questionnaire.IsPublished = dotaznikObj.IsPublished;
+        //questionnaire.IsVyhodnoceny = dotaznikObj.IsVyhodnoceny;
+        //questionnaire.StartDate = DateTime.Now;
+        //questionnaire.EndDate = DateTime.Now;
+        //questionnaire.Name = dotaznikObj.Name;
+        //questionnaire.UserID = UserID;
+        //questionnaire.Questions = dotaznikObj.Questions;
+        //// questionnaire = dotaznikObj;
+        //await dotaznikCreateService.DotaznikCreate(questionnaire);
+        ////Response = response.ErrMsg;
+        //NavigationManager.NavigateTo("questionare-list");
+        //volání JS FUNKCE
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JSRuntime.InvokeVoidAsync("LogedInCheck");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        int DotaznikID = -1;
+        //SMAZZAT dotaznikID ZE PAMĚTI -> BUDEM VYBÍRAT JINÝ DOTAZNÍK
+        await JSRuntime.InvokeVoidAsync("DotaznikSet", DotaznikID);
+
+    }
+}
+
+
+
+
+
+
+

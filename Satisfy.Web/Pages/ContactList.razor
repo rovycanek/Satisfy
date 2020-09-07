@@ -1,0 +1,437 @@
+﻿@inject Satisfy.Web.Data.ContactListService contactListService
+@inject Satisfy.Web.Data.RespondentService respondentService
+@inject NavigationManager NavigationManager
+@inject Satisfy.Web.Data.SendMailService mailService
+@inject Satisfy.Web.Data.DotaznikListService dotaznikListService
+@inject DotaznikCreateService dotaznikCreateService
+@inject IJSRuntime JSRuntime;
+
+
+@page "/contact-list"
+@using Satisfy.Web.Data
+
+<style>
+    .myInput {
+        width: auto;
+        height: 50px;
+    }
+
+    .card {
+        /*width: 500px;
+       height: auto;
+        position: absolute;
+        left: 50%;
+        margin-left: -50px;*/
+        margin-left: 50px;
+        margin-right: 50px;
+        margin-top: 8%;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 15px;
+    }
+
+    .img2 {
+        width: 120px;
+        height: auto;
+        z-index: 3;
+    }
+
+    .inp {
+        -webkit-box-shadow: 12px 9px 5px 0px rgba(0,0,0,0.14);
+        -moz-box-shadow: 12px 9px 5px 0px rgba(0,0,0,0.14);
+        box-shadow: 12px 9px 5px 0px rgba(0,0,0,0.14);
+    }
+
+    .shading {
+        -webkit-box-shadow: 16px 21px 26px -8px rgba(36,36,36,0.52);
+        -moz-box-shadow: 16px 21px 26px -8px rgba(36,36,36,0.52);
+        box-shadow: 16px 21px 26px -8px rgba(36,36,36,0.52);
+    }
+
+    .btn {
+        width: 150px;
+    }
+
+
+    .separator {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: gray;
+    }
+
+        .separator::before, .separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid;
+            color: gray;
+        }
+
+        .separator::before {
+            margin-right: .25em;
+        }
+
+        .separator::after {
+            margin-left: .25em;
+        }
+
+    body {
+        /*background-image: url(images/backgr.jpg);*/
+        background-size: cover;
+        background-attachment: fixed;
+    }
+</style>
+
+<div>
+
+    <div class="card shading text-center">
+        <div class="card-header">
+            <div class="row">
+                <div class="col-sm-6 align-content-start align-text-bottom">
+                    <h3 class="">Contacts</h3>
+                </div>
+                <div class="col-sm-6" style="justify-content:flex-end;">
+                    <img class="img2 " src="images/SATISFY-LOGO-01.png" />
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+
+            <table id="contactListTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        @if (dotaznikID > -1)
+                        {
+                            <th>Recipient</th>
+                        }
+                        <th>Name</th>
+                        <th onclick="sortTable(0)">Surname</th>
+                        <th onclick="sortTable(1)">Company</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody id="contact-list-table">
+                    @if (ContactListResponses != null)
+                    {
+                        @for (var i = 0; i < ContactListResponses.Count(); i++)
+                        {
+                            <tr>
+                                @if (dotaznikID > -1)
+                                {//můžu vybírat jen když existuje vybraný dotazník který budem posílat (je neco ulozene v session)
+                                    <td>
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" value=@ContactListResponses[@i].ContactId>
+                                        </div>
+                                    </td>
+                                }
+                                <td>@ContactListResponses[@i].Name</td>
+                                <td>@ContactListResponses[@i].Surname</td>
+                                <td>@ContactListResponses[@i].Company</td>
+                                <td>@ContactListResponses[@i].Email</td>
+                            </tr>
+                        }
+                    }
+
+                    <tr class="table-info" data-toggle="modal" data-target="#myModal">
+                        <td class="text-center" style="font-weight:bold;">+ Add contact</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            @if (dotaznikID > -1)
+            {
+                <button class="btn btn-sm btn-outline-dark" @onclick="SelectAllChecks" style="width:185px; height:37px;">Select all</button>
+                <button class="btn btn-sm btn-outline-info" @onclick="ShowWhoNotAnswered" style="width:185px; height:37px;">Not answered</button>
+                <button class="btn btn-sm btn-outline-warning" @onclick="ContList" style="width:185px; height:37px;">Show all</button>
+                <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#myModalSend" style="width:185px; height:37px;">Send</button>
+                <button class="btn btn-sm btn-outline-secondary" @onclick="CancelQuest" style="width:185px; height:37px;">Cancel</button>
+            }
+
+        </div>
+    </div>
+
+    <!-- The Modal -->
+    <div class="modal fade" id="myModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title" >Add contact</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <form>
+                        <div class="input-group mb-3 inp ">
+                            <input type="text" class="form-control text-center myInput" placeholder="Name" @bind="Name">
+                        </div>
+
+                        <div class="input-group mb-3 inp">
+                            <input type="email" class="form-control text-center myInput" placeholder="Surname" @bind="Surname">
+                        </div>
+
+                        <div class="input-group mb-3 inp">
+                            <input type="email" class="form-control text-center myInput" placeholder="Company" @bind="Company">
+                        </div>
+
+                        <div class="input-group mb-3 inp">
+                            <input type="email" class="form-control text-center myInput" placeholder="E-mail" @bind="Email">
+                        </div>
+
+                    </form>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer" style="justify-content:center;">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <button type="button" class="btn btn-success" data-dismiss="modal" @onclick="ContAdd" >Save</button>
+                        </div>
+                        <div class="col-sm-6">
+                            <button type="button" class="btn btn-danger" data-dismiss="modal" @onclick="ContList">Close</button>
+                        </div>
+
+                    </div>
+                    <div class="text-center">
+                        <h6>@ContactAddResponse</h6>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="myModalSendButton">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Send questionaire?</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <p>If you do so this qestionaire WILL BE SENT to selected contacts!</p>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer" style="justify-content:center;">
+                    <button type="button" class="btn btn-outline-primary" data-dismiss="modal">Send</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="myModalSend">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Send questionaire?</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <p>If you do so this qestionaire WILL BE SENT to selected contacts!</p>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer" style="justify-content:center;">
+                    <button type="button" class="btn btn-outline-primary" @onclick="SendDotaznikToContacts" data-dismiss="modal">Send</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@code{
+    int UserID = -1;
+    string Name;
+    string Email;
+    string Surname;
+    string Company;
+    int dotaznikID = -1;
+    int contactID = -1;
+
+    List<ContactListResponse.Contact> ContactListResponses;
+    string ContactAddResponse;
+    int RespondentsAddResponseID;
+    int[] selectedContacts;
+
+    //Questionnairee questionnaire = new Questionnairee();
+
+    async Task ContList()
+    {
+        var response = await contactListService.Contacts(UserID);
+        ContactListResponses = response.List;
+    }
+
+    async Task ContAdd()
+    {
+        var response = await contactListService.AddContact(UserID, Name, Email, Surname, Company);
+        ContactAddResponse = response.Response;
+        await ContList();
+
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            dotaznikID = await JSRuntime.InvokeAsync<int>("DotaznikGet");
+        }
+        catch
+        {
+
+        }
+
+        try
+        {
+            UserID = await JSRuntime.InvokeAsync<Int32>("LoginGet");
+        }
+        catch { }
+
+        await ContList();
+
+    }
+
+    public ContactListResponse.Contact FindContactByID(int id)
+    {
+        for (var i = 0; i < ContactListResponses.Count(); i++)
+        {
+            if (id == ContactListResponses[i].ContactId)
+            {
+                return ContactListResponses[i];
+            }
+        }
+        return null;
+    }
+
+    async public void SendDotaznikToContacts()
+    {
+        string urlDotazniku = "";
+        string contactMail = "";
+        ContactListResponse.Contact pomContact = null;
+
+        //ZJISTIT KTERÉ CHECKBOXY JSOU ZAŠKRTNUTÉ -> uložit id do pole selectedContacts
+        //  ZPRACOVÁNÍ OZNAČENÝCH CHECKBOXŮ
+        var pole = await JSRuntime.InvokeAsync<string>("ContactList");
+        string[] novepole = pole.Split(',');
+        selectedContacts = Array.ConvertAll(novepole, int.Parse);
+
+        //FOR všechny vybrané kontakty -> vytvoř zápis do tabulky respondents
+        if (selectedContacts != null)
+        {
+            for (var i = 0; i < selectedContacts.Count(); i++)
+            {
+                contactID = selectedContacts[i];
+                var response = await respondentService.AddRespondent(contactID, dotaznikID);
+                RespondentsAddResponseID = response.RespondentID;
+                //string respID = RespondentsAddResponseID
+
+                //načtu si URL z appsetting.JSON
+                //JO 3.5.2020
+                string url = contactListService.URlConfig();
+                //POSLAT MAIL KONTAKTU
+                urlDotazniku = url+"questionare-fill?respondentId=" + RespondentsAddResponseID;
+                pomContact = FindContactByID(contactID);
+                if (pomContact != null)
+                {
+                    contactMail = pomContact.Email;
+
+                    //A TADY DAT PRIKAZ PRO ODESLÁNÍ MAILU s urlDotazniku NA contactMail
+                    var responseMail = await mailService.SendMail(contactMail, "Satisfy questionaire", "Hello! \nWe'd like to ask you some questions. Click on the link and give us your answers please! \n" + urlDotazniku);
+                }
+            }
+            // await LoadDotaznikList();
+            await PublishDotaznik();
+        }
+
+        CancelQuest();
+        NavigationManager.NavigateTo("questionare-list");
+    }
+
+    //async Task LoadDotaznikList()
+    //{
+    //    var response = await dotaznikListService.DotaznikyLoad();
+    //    DotaznikListResponses = response;
+    //}
+
+    async public Task PublishDotaznik()
+    {
+
+        //for (var i = 0; i < DotaznikListResponses.Count(); i++)
+        //{
+        //    if (DotaznikListResponses[i].DotaznikID == dotaznikID)//sem pridat id dotazniku u ktereho kliknem na publish tlacitko
+        //    {
+        //        questionnaire = DotaznikListResponses[i];
+        //    }
+        //}
+
+        //var qeustEdit = new Questionnairee();
+
+        //qeustEdit.DotaznikID = questionnaire.DotaznikID;
+        //qeustEdit.IsPublished = true;
+        //qeustEdit.IsVyhodnoceny = questionnaire.IsVyhodnoceny;
+        //qeustEdit.StartDate = DateTime.Now;
+        //qeustEdit.EndDate = DateTime.Now;
+        //qeustEdit.Name = questionnaire.Name;
+        //qeustEdit.UserID = questionnaire.UserID;
+        //qeustEdit.Questions = questionnaire.Questions;
+
+        //// questionnaire.StartDate = DateTime.Now;
+        ////questionnaire.IsPublished = true;
+
+
+        //await dotaznikCreateService.DotaznikCreate(qeustEdit);
+        await dotaznikListService.PublishDotazniky(dotaznikID);
+
+    }
+
+    async Task ShowWhoNotAnswered()
+    {
+        var response = await contactListService.NoRespondedContacts(UserID, dotaznikID);
+        ContactListResponses = response.List;
+    }
+
+    async Task SelectAllChecks()
+    {
+        await JSRuntime.InvokeVoidAsync("SelectAllChecks");
+    }
+
+    public async void CancelQuest()
+    {
+        dotaznikID = -1;
+        //SMAZZAT dotaznikID ZE PAMĚTI -> BUDEM VYBÍRAT JINÝ DOTAZNÍK
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("DotaznikSet", dotaznikID);
+        }
+        catch { }
+
+        NavigationManager.NavigateTo("questionare-list");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("LogedInCheck");
+        }
+        catch { }
+
+    }
+}
